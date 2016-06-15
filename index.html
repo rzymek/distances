@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Title of the document</title>
+</head>
+
+<body>
+<form>
+    <textarea name="z" rows="10" cols="100" placeholder="Start. Każde miejsce w oddzielnym wierszu"></textarea><br>
+    <input name="do" placeholder="Cel"/>
+    <input type="submit"/>
+</form>
+<div id="out"></div>
+
+<script type="application/javascript">
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (decodeURIComponent(pair[0]) == variable) {
+                return decodeURIComponent(pair[1]);
+            }
+        }
+        console.log('Query variable %s not found', variable);
+    }
+
+    var z = (getQueryVariable('z') || '').split('\n');
+    var to = getQueryVariable('do');
+    if(to) {
+        document.getElementsByName('do')[0].value = to;
+        document.getElementsByName('z')[0].value = z.join('\n');
+
+        var html = z.map(function (dest) {
+            console.log(dest);
+            return '<iframe width="600" height="450" frameborder="0" style="border:0"' +
+                    ' src="https://www.google.com/maps/embed/v1/directions?key=AIzaSyA0hC7g8c5eUFPjvbUt_tFN1UkjjQ32ppI&origin=' +
+                    encodeURIComponent(to) + '&destination=' + encodeURIComponent(dest) + '" allowfullscreen></iframe>';
+        }).join('');
+        document.getElementById('out').innerHTML = html;
+    }
+</script>
+</body>
+
+</html>
