@@ -3,15 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>Kilometrówka</title>
+    <style>
+        .col {
+            float: left;
+            width: 45%;
+        }
+    </style>
 </head>
 
 <body>
-<form>
-    <textarea name="z" rows="10" cols="100" placeholder="Start. Każde miejsce w oddzielnym wierszu"></textarea><br>
-    <input name="do" placeholder="Cel"/>
-    <input type="submit"/>
-</form>
-<div id="out"></div>
+<div class="col">
+    <form>
+        <textarea name="z" rows="10" style="width:100%"
+                  placeholder="Start. Każde miejsce w oddzielnym wierszu"></textarea><br>
+        <input name="do" placeholder="Cel"/>
+        <input type="submit"/>
+    </form>
+</div>
+<div class="col">
+    <textarea id="textout" rows="10" style="width:100%" readonly
+              placeholder="Tu będą wyniki do skopiowania..."></textarea>
+</div>
+<div id="out" style="clear:both"></div>
 
 <script type="application/javascript">
     function getQueryVariable(variable) {
@@ -20,7 +33,7 @@
         for (var i = 0; i < vars.length; i++) {
             var pair = vars[i].split('=');
             if (decodeURIComponent(pair[0]) == variable) {
-                return decodeURIComponent(pair[1]).replace(/[+]/,' ');
+                return decodeURIComponent(pair[1]).replace(/[+]/g, ' ');
             }
         }
         console.log('Query variable %s not found', variable);
@@ -28,7 +41,7 @@
 
     var z = (getQueryVariable('z') || '').split('\n');
     var to = getQueryVariable('do');
-    if(to) {
+    if (to) {
         document.getElementsByName('do')[0].value = to;
         document.getElementsByName('z')[0].value = z.join('\n');
 
@@ -40,6 +53,38 @@
         }).join('');
         document.getElementById('out').innerHTML = html;
     }
+
+    function distances() {
+        var service = new google.maps.DistanceMatrixService;
+        service.getDistanceMatrix({
+            origins: z,
+            destinations: [to],
+            travelMode: google.maps.TravelMode.DRIVING,
+            unitSystem: google.maps.UnitSystem.METRIC,
+            avoidHighways: false,
+            avoidTolls: false
+        }, function (response, status) {
+            if (status !== google.maps.DistanceMatrixStatus.OK) {
+                alert('Error was: ' + status);
+            } else {
+                var originList = response.originAddresses;
+                var output = document.getElementById('textout');
+                output.value = "Dojaz do " + response.destinationAddresses + "\n"
+                        + originList.map(function (place, i) {
+                            var result = response.rows[i].elements[0];
+                            if (result.status !== 'OK') {
+                                return place + ": Brak wyników. Opisz dokładniej miejsce to lub końcowe (" + result.status + ")";
+                            } else {
+                                return place + ": " + result.distance.text + " (" + result.duration.text + ")"
+                            }
+                        }).join('\n');
+
+            }
+        });
+    }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA0hC7g8c5eUFPjvbUt_tFN1UkjjQ32ppI&callback=distances">
 </script>
 </body>
 
